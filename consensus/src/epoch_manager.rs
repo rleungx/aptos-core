@@ -425,6 +425,7 @@ impl EpochManager {
         } else {
             self.commit_state_computer.clone()
         };
+        state_computer.new_epoch(&epoch_state);
 
         info!(epoch = epoch, "Create BlockStore");
         let block_store = Arc::new(BlockStore::new(

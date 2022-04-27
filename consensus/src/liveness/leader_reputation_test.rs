@@ -35,8 +35,12 @@ impl MetadataBackend for MockHistory {
     }
 }
 
-fn create_block(proposer: Author, voters: Vec<&ValidatorSigner>) -> NewBlockEvent {
-    NewBlockEvent::new(0, proposer, voters.iter().map(|v| v.author()).collect(), 0)
+fn create_block(proposer: Author, voters: Vec<bool>) -> NewBlockEvent {
+    create_block_with_epoch(proposer, voters, 0)
+}
+
+fn create_block_with_epoch(proposer: Author, voters: Vec<bool>, epoch: u64) -> NewBlockEvent {
+    NewBlockEvent::new(epoch, 0, voters, proposer, 0)
 }
 
 #[test]
@@ -61,8 +65,63 @@ fn test_simple_heuristic() {
     let weights = heuristic.get_weights(
         &proposers,
         &[
-            create_block(proposers[0], vec![&signers[1], &signers[2]]),
-            create_block(proposers[0], vec![&signers[3]]),
+            create_block(
+                proposers[0],
+                vec![false, true, true, false, false, false, false, false],
+            ),
+            create_block(
+                proposers[0],
+                vec![false, false, false, true, false, false, false, false],
+            ),
+        ],
+    );
+    assert_eq!(weights.len(), proposers.len());
+    for (i, w) in weights.iter().enumerate() {
+        let expected = if i < 4 {
+            active_weight
+        } else {
+            inactive_weight
+        };
+        assert_eq!(*w, expected);
+    }
+}
+
+#[test]
+fn test_epoch_change() {
+    let active_weight = 9;
+    let inactive_weight = 1;
+    let mut proposers = vec![];
+    let mut signers = vec![];
+    for i in 0..8 {
+        let signer = ValidatorSigner::random([i; 32]);
+        proposers.push(signer.author());
+        signers.push(signer);
+    }
+    let heuristic = ActiveInactiveHeuristic::new(proposers[0], active_weight, inactive_weight);
+    // History with [proposer 0, voters 1, 2], [proposer 0, voters 3] in current epoch
+    let weights = heuristic.get_weights(
+        &proposers,
+        &[
+            create_block_with_epoch(
+                proposers[0],
+                vec![false, true, true, false, false, false, false, false],
+                2,
+            ),
+            create_block_with_epoch(
+                proposers[0],
+                vec![false, false, false, true, false, false, false, false],
+                2,
+            ),
+            create_block_with_epoch(
+                proposers[0],
+                vec![false, true, true, true, true, true, true, true],
+                1,
+            ),
+            create_block_with_epoch(
+                proposers[0],
+                vec![false, true, true, true, true, true, true, true],
+                0,
+            ),
         ],
     );
     assert_eq!(weights.len(), proposers.len());
@@ -88,8 +147,8 @@ fn test_api() {
         signers.push(signer);
     }
     let history = vec![
-        create_block(proposers[0], vec![&signers[1], &signers[2]]),
-        create_block(proposers[0], vec![&signers[3]]),
+        create_block(proposers[0], vec![false, true, true, false, false]),
+        create_block(proposers[0], vec![false, false, false, true, false]),
     ];
     let leader_reputation = LeaderReputation::new(
         proposers.clone(),

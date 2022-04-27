@@ -2,13 +2,13 @@
   {
     "type": "block_metadata_transaction",
     "version": "1",
-    "hash": "0xa7ec7246c510563a87141e5936b16a02d4acff7cb29b9cdbaf5bcd7772bd1dfc",
-    "state_root_hash": "0x1eb43d779d375eb5e708ccad320b26f017b19f612f37e6dc7762af656f41783b",
-    "event_root_hash": "0x8f0766912895669a4ab13dc38d57a4975aa4e0676511146ff18b656b09775fe2",
+    "hash": "0x112f328f04298784565f8e827b7a3c47cf866c1b84965b168b6c4234cd80a0d8",
+    "state_root_hash": "0x3960dd9cb2a061d55f71ace33479d63058a0d7a366b10a6b120c3af91b5d54b9",
+    "event_root_hash": "0x3c403d94aa5a109333690927f444e1d567e63a9b062306cb77c7c95d62f87ac1",
     "gas_used": "0",
     "success": true,
     "vm_status": "Executed successfully",
-    "accumulator_root_hash": "0xdabd7c814d96905c77640990324b3bcba48702c8ba578be80dc5926bc601491e",
+    "accumulator_root_hash": "0x1132cc385879bd058e11ccb04541a212529764ce599108f13c46bf89bbe48bcc",
     "changes": [
       {
         "type": "write_resource",
@@ -47,8 +47,11 @@
       }
     ],
     "id": "0xf44b581f23222c10916b17a369b4da039d075952b58036f2a7b561446592403c",
+    "epoch": "0",
     "round": "1",
-    "previous_block_votes": [],
+    "previous_block_votes": [
+      false
+    ],
     "proposer": "0xf85fd00e30cd388d2609db24d6cc44f2652f27413456938eaa059f65231647cc",
     "timestamp": "1"
   },
@@ -56,12 +59,12 @@
     "type": "user_transaction",
     "version": "2",
     "hash": "0xab573777842a7e334ebe7c269717baa8a7bc4bdf28cdc2d288099ef267f09ccd",
-    "state_root_hash": "0xb42d22a6cacf76f81593dc5b67e7768da172ac91856af35ae49cfbcc2ef0c282",
+    "state_root_hash": "0x4e6d7aa3a708a99e446680420834ceb2a549e0904d41be9abb39e7bfbcecfeca",
     "event_root_hash": "0x414343554d554c41544f525f504c414345484f4c4445525f4841534800000000",
     "gas_used": "92",
     "success": true,
     "vm_status": "Executed successfully",
-    "accumulator_root_hash": "0x2ac36e8dea6689f8c258bb6a8e92c4aa53eccb70258c75a862fc4b17668d6cee",
+    "accumulator_root_hash": "0xe6208b0d2f30dfc6dc1d4aaed0ac9d9c939dace32dd09c9b6168606eb38d68bf",
     "changes": [
       {
         "type": "write_resource",

@@ -112,30 +112,65 @@ impl ActiveInactiveHeuristic {
             inactive_weight,
         }
     }
+
+    // TODO: is unwrap safe? what to do here instead? filter None, then unwrap?
+    fn bitmap_to_voters<'a>(validators: &'a [Author], bitmap: &[bool]) -> Vec<&'a Author> {
+        bitmap
+            .iter()
+            .enumerate()
+            .filter(|&(_, &voted)| voted)
+            .map(|(i, _)| validators.get(i).unwrap())
+            .collect()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::liveness::leader_reputation::ActiveInactiveHeuristic;
+    use aptos_types::account_address::AccountAddress;
+
+    #[test]
+    fn test_bitmap_to_voters() {
+        let validators: Vec<_> = (0..4)
+            .into_iter()
+            .map(|_| AccountAddress::random())
+            .collect();
+        let bitmap = vec![true, true, false, true];
+
+        let voters = ActiveInactiveHeuristic::bitmap_to_voters(&validators, &bitmap);
+        assert_eq!(&validators[0], voters[0]);
+        assert_eq!(&validators[1], voters[1]);
+        assert_eq!(&validators[3], voters[2]);
+    }
 }
 
 impl ReputationHeuristic for ActiveInactiveHeuristic {
     fn get_weights(&self, candidates: &[Author], history: &[NewBlockEvent]) -> Vec<u64> {
         let mut committed_proposals: usize = 0;
         let mut committed_votes: usize = 0;
+        let mut current_epoch: Option<u64> = None;
 
-        let set = history.iter().fold(HashSet::new(), |mut set, meta| {
-            set.insert(meta.proposer());
-            for vote in meta.votes() {
-                set.insert(vote);
-                if vote == self.author {
-                    committed_votes = committed_votes
-                        .checked_add(1)
-                        .expect("Should not overflow the number of committed votes in a window");
+        let set = history
+            .iter()
+            .filter(|&meta| &meta.epoch() == current_epoch.get_or_insert(meta.epoch()))
+            .fold(HashSet::new(), |mut set, meta| {
+                set.insert(meta.proposer());
+                let voters = Self::bitmap_to_voters(candidates, meta.previous_block_votes());
+                for &voter in voters {
+                    set.insert(voter);
+                    if voter == self.author {
+                        committed_votes = committed_votes.checked_add(1).expect(
+                            "Should not overflow the number of committed votes in a window",
+                        );
+                    }
                 }
-            }
-            if meta.proposer() == self.author {
-                committed_proposals = committed_proposals
-                    .checked_add(1)
-                    .expect("Should not overflow the number of committed proposals in a window");
-            }
-            set
-        });
+                if meta.proposer() == self.author {
+                    committed_proposals = committed_proposals.checked_add(1).expect(
+                        "Should not overflow the number of committed proposals in a window",
+                    );
+                }
+                set
+            });
 
         COMMITTED_PROPOSALS_IN_WINDOW.set(committed_proposals as i64);
         COMMITTED_VOTES_IN_WINDOW.set(committed_votes as i64);

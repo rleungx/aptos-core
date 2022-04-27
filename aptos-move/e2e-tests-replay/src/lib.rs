@@ -517,13 +517,14 @@ impl<'env> TraceReplayer<'env> {
         // args
         let signer = reserved_vm_address();
         let session_id = SessionId::block_meta(&block_metadata);
-        let (round, timestamp, previous_votes, proposer) = block_metadata.into_inner();
+        let (epoch, round, timestamp, previous_votes, proposer) = block_metadata.into_inner();
         let args: Vec<_> = vec![
             MoveValue::Signer(signer),
+            MoveValue::U64(epoch),
             MoveValue::U64(round),
-            MoveValue::U64(timestamp),
-            MoveValue::Vector(previous_votes.into_iter().map(MoveValue::Address).collect()),
+            MoveValue::Vector(previous_votes.into_iter().map(MoveValue::Bool).collect()),
             MoveValue::Address(proposer),
+            MoveValue::U64(timestamp),
         ]
         .into_iter()
         .map(|v| v.simple_serialize().unwrap())

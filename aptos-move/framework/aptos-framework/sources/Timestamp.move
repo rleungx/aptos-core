@@ -93,7 +93,7 @@ module AptosFramework::Timestamp {
 
         /// Conditions we only check for the implementation, but do not pass to the caller.
         aborts_if [concrete]
-            (if (proposer == @VMReserved) {
+            (if (proposer == 0) {
                 now != timestamp
              } else  {
                 now >= timestamp
